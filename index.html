@@ -22,6 +22,7 @@ h1{margin:0;text-align:center;color:#fff7d2;text-shadow:2px 3px #7a334f,-2px -1p
 .foot{display:flex;justify-content:space-between;align-items:center;background:#433045;border:2px solid #e7a4bd;border-radius:8px;padding:8px;font-size:12px}#reset{border:0;background:#e7a4bd;color:#4e3044;padding:8px;border-radius:5px;font-weight:800}
 small{font-size:11px;color:#f9e4ee;text-align:center}
 @media(max-height:720px){main{gap:6px;padding-top:6px}.stat{padding:5px}.stat strong{font-size:17px}.catch{min-height:85px}.catch canvas{height:60px;width:96px}#action{padding:10px}}
+.fan-disclaimer{display:block;text-align:center;font-size:10px;line-height:1.6;color:#fff5f7;opacity:.85;padding:2px 7px 4px}
 </style></head><body><main>
 <h1>🌸 金たい焼き釣り耐久 🌸</h1>
 <div class="stats"><div class="stat">釣った数<strong id="count">0 匹</strong></div><div class="stat">金たい焼き<strong id="gold">0 匹</strong></div></div>
@@ -38,6 +39,7 @@ small{font-size:11px;color:#f9e4ee;text-align:center}
 <option value="1">確定 1/1</option>
 </select><label for="catchMultiplier" style="margin-top:10px;display:block">釣果カウント倍率</label><select id="catchMultiplier"><option value="1">通常：1匹釣ったら＋1匹</option><option value="10">テスト：1匹釣ったら＋10匹</option></select></div><div class="debug-note" id="debugNote">※確率変更はテスト用です。通常は1/4096に戻してください。</div></details>
 <div class="foot"><span id="oddsLabel">金たい焼き出現確率：1 / 4096</span><button id="reset">記録リセット</button></div><small>釣果はこのブラウザに保存されます</small>
+<small class="fan-disclaimer">本ゲームはホロライブプロダクションの非公式ファンメイドゲームです。<br>カバー株式会社および所属タレントとは関係ありません。</small>
 </main><script>
 (()=>{'use strict';const $=id=>document.getElementById(id),KEY='gold-fishing-v1';
 let data={};try{data=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch{}
