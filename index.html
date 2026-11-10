@@ -198,7 +198,7 @@ else {
 }
 
 // 35Pの目は背景から分離。元の黒目・ジト目・喜び目を排他的に切り替える。
-const eyeSprites=['data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACIAAAAeCAIAAADGnVtDAAAEcklEQVR4nLWW3W8VVRTF19pzZu7tx5UWXyStQSkfGoMkIFSlKA8kppEEoy+Y8A/4+UQ1+GfAOzxCgiSaCglCeCA8KIVQGkxqNTHERhDTkN723nZmztnbh2nvbUsLNNCd83ByZmb/zjqz9p5hqNfxbKFsziOR+UXJGadELcLYhMozMh4TEeGAkuHVF2UNMWLmgMTQArg1oyigAkkAMz5njJrNzQwQDxNHgayhGkCNDICKrikGSoMBBlkFZqFxnyYE0GJicLSll225dEoEa94q0rxJsDzflJzLZqtQE0XSEKRqjS0/PsSAVRnazOwR6U8Zq8Dked5QE7v4eWJI+hCEVLXW9vYQvEikGkSiNE2TJAl5vtKzC7U/AWNmLopIRkk8Mjw8OjZWLpcjF3V2dG5/c7uZCbjQDituV2tLO/RCp5lZFEWq+tfdu198/dXtOyMAgg8bX9l47vtz3d3dAq4oKOjTYiSK/hgbO37ixPUbQ8MjI7kGEhoAYP/+93a9tevLzz5/uav7SRidwzTO0QgTRiI+BBEB8NPg4OHDn5owisTMVM3MzDQEW7++8+zZs+/39QXVSEQXe9GCR2Fo6vLvxoSRuHq9fvr0mVOnTgVoKS6FEBoMUpzDzEz9xInjD+7d+/Dgwba2dtEQFlu+YIgtZwGSRcbx8fGTJ0/evHmjUqmkadpgmFkeQscL7Xmenz9/4Z+/x/fu7WtrbdWFbcJgBoFCBSs5jWQcR7Mzs7XatKp5H7IsI6VgmMHJXCPIc59lealUAsUsLJHSeMvLYPIsS1rKpFSnqpOTk8UW82CCZhYSeZ4BcC4q2FmaUmjzTciAyBQG0GPZnhQ5B8BMsywjKYIQvBOQzTF/tmqm5XJLpdKelEpL8igbpl3ulyN2Ls89gG3bXuvv729tbfM+xHEswsYoJCZJHILd//d+fWYGpmSzFAxQiBJGBR/B0OBDEKGqbtjw0oEDB5IkiWPnvSelMUqlhGRLS2t//wffHTtWaWuv1etZloG6aEAJT80cxQBQm3UjRiMFJLmlZ/M7e/ZcHxrKZ1NxUlSS9yFNs+Lcvh34Zl/ffpgXFymCWjAzqoeahjxxMWbrmKlR69OFiAbGICYUkuTk5OTU1PSly5cGBgYmJqtOQNLMyuXykSNHent7P/no40r7OgAGr1QfcrNA8xJCXqu1luL7v49eHPzBNbI3z5RNI7ZXKus6Og8dOjQ6Onr12jUA3udZlnV1dR09OtCzZXOepsGCkCaOCEAugJg687H4/8b+HDxz5rfhW7SpKRAgjbA5hwg5pwbOwfugWq1WJx4+JBmCz3Mv5Kaenjh2qmpKkhJFpGlWF80ZMoT05uWLV85fyOuzW3u2umy65pJEkphOio5UGEbNYBZ5XyxWKpV1nR0NpxRfnaJZ0AmVGkJkGvkAhGziwc+DP9759Zc7I7dff2PHzr59Lq3W4g4HZwhKoS5uSjZf92aWpmnT9HFsZkVV0RRUmtAUQlSro7eGrl+94oy7e9/dsfvtTTt2/g+ZM6fJVwTo7gAAAABJRU5ErkJggg==','data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACIAAAAeCAIAAADGnVtDAAAFkklEQVR4nLVW3Y9V1RX/rbX2OfdjitgOg2ObyDgpGhsM6oAhgRqNiR/BNLaRtDa0QWr8N+S18aFpwxuJpA2KrxMNfkSSqWSg8QMdLVGcUoMTZpgyTOXOnXPuOXvvtfpwLncuMGNIo7+ch52999rr+7cOxayNqyASrAqLK0u17oIAsFJPlnp3BEREYAIxgGiRV3/3JkC25pFSZUTXLjb8/2puEmZGRN+7GgAgdsQrMcUacejl43pxWslIf26YCICZwSIRwdR9N/auDTMD8L2rUTPg5krAaPVNXW1/VThYnybSNa5xhAEwVWJmIiIyglxjpKlZFaLQt6s3Bq0/1ZVA9yoxiAAQCwAFiKqcr9U7/ebeqKbv6agrnc9ONKpqVDNVdSIuSYTZ+tjh23FTJaBRxUkqNQgjKgDYWuFdQw0R2VX0HyRJ4r0HoKou5bnZuS/OfrF4+XJRFEma7tq5a/j2YWGQiMVIIgDE1NT0uodu9Eb7g+Z9DBFAmqZSr797/N0DBw5o1FarVavV9j23748vvQT1FmO3wXs6zHBDBV6Xm5VQqCoxmdrUp1N/O/Lq5OTkhQuzA81m6ct2lo2Pj9dqtd27n9y2bRsrgFhZaWuqMZAB1qXSlSIxJeeM9c233z506FDwvtomolqazF64cPDgwSSRLVu21Ot1JurpMDPuaxLutqcxDAQli6zRxchWsBVpCieh45enz31ppEpgJ3lZgMkIwbRTFsfeemf89Tda7WVK62bExgJx5Eip97ExGzPMoAQ1MrAp6KpPbCdOTj725BNvvHksqlbMqBrLslQ1ZnYu+eD0h3/6y59nZmbgfeUO1LAazzoAICCSGSIxCFxdo2Ti75MfTZ2Bsao5EgBViVQjRIRV7eLcRWYBcZe7urLXJ8ch5gDBjKAgBVQJgKOIb1ptGEvqLFaVHSvxqgdiVFPc+sNbhRlMpoqrrEC4ZtgTkWtNnw6K9UM/lmbTpQnSxJdBY3TrbmnUm6pqhY/BDDFJnJklifM+ABDhaijWG/XovYigN7mv9YaI3PjRw+0sv3dsx/aHHq4Nbgi5T+oD0RHMntu/f3Fx8ciRI5FMRFQ1Rg0hirCqttttJ7JhcMPGjRuFOcZv4wX31fTnnSy/NPf1Umv+0af3pD8ajj7vBCPVn47euf3++w4fetmAKJokTjWqWr1eU9XBwcH9zz+/d+9eZoYIR+15o32UShVee/EFF/1ytrSUlUN3jG7dsfPuse1ImhGicKfeOzExMXHmy+kTkycXFhbSNC2KotkcyPPs/rGxo68dHdk0AlUApNb717E+z6gi8/yrD+tMS5f+88pfD5879+/7xh7YfO/WrTt21oZ+4lU6eRG8nv3X9G9+++z5mTkAiaDRGPjdvt8/s+fXP39oV6fTSUQSdtTtDYMqNMBHMCMEsICJLF9AkUHDJxPHT586Wasn84sLI5t/9qu9f8DAekDg0vm52WNvvdNqLy1n2cL8/F133fPLPc8M3XZbiJ4MAlJVl9ZgBjNEyxcWinbW888IZPmV2MmFAIT2/Nef/3PqH6dOdfJydHT08d2/+MGmzTAOwczVSLjdXuaojWZTGF4Du9S5xExV1bkEIaIM8CFf/G+nnUlcCSMtX1lsrrslZm1JCFZm87Mff/D+4uzs2TOfbRodeWrPs43B2w0p1ZoRBCYxUl+ClJ0zA0kagnfVVO0UxXKuWcFFSWVwzOqjYyYi1xhYZ2rUWGemZGlzeGTnI0OXzp+bmzk/9dH7pc8efeyp4Xse0M5yoQThlJgNoKDRE1K44EQqjsmvtK3wKHzCHIP6UKYQIgNAGqJRl5ZZAwMIHkXrs8nj02c++ebyxbTW2P7w43dvfRAD60EuFCVXRQsQUpIERJp3rAwhL6z0sVNyCFwGCsogZ1Cz/wEgVFuHTESe3gAAAABJRU5ErkJggg=='].map(src=>{const img=new Image();img.src=src;return img});
+
 function draw35PFace(now){
  const c=oc,t=now/1000;
  const mood=state==='bite'?'surprise':state==='reeling'?'effort':state==='result'?(caught?(shiny?'gold':'red'):'miss'):'normal';
@@ -218,8 +218,12 @@ function draw35PFace(now){
   box(c,141,60,3,2,ink);box(c,144,62,3,2,ink);
  }else{
   // 通常・空振り・アタリ・釣り上げ中は、元画像の丸い黒目を復元。
-  for(let i=0;i<2;i++)if(eyeSprites[i].complete&&eyeSprites[i].naturalWidth){
-   c.drawImage(eyeSprites[i],(i===0?109:142)-8,49,17,15);
+  // 黒目のみ描画（周囲の肌色や影を含む画像は重ねない）。
+  const ink='#302b36';
+  for(const x of [109,142]){
+   box(c,x-2,54,5,2,ink);
+   box(c,x-3,56,7,4,ink);
+   box(c,x-2,60,5,2,ink);
   }
  }
  const ink='#49344a',blue='#6fd4ec',gold='#ffe36e';
