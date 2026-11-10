@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#172f45">
+<title>金色の魚 釣り耐久 - Pixel Edition</title>
+<style>
+:root{font-family:system-ui,-apple-system,sans-serif;color:#f5f5e7;background:#122538}
+*{box-sizing:border-box}body{margin:0;min-height:100svh;display:grid;place-items:center}
+main{width:min(100%,460px);height:100svh;max-height:980px;min-height:520px;display:flex;flex-direction:column;gap:9px;padding:calc(10px + env(safe-area-inset-top)) 12px calc(10px + env(safe-area-inset-bottom));background:#19394b}
+h1{font-size:17px;letter-spacing:.08em;margin:0;text-align:center;color:#f7d77c;text-shadow:2px 2px #101e2e}
+.stats{display:flex;gap:8px}.stat{flex:1;border:3px solid #6b8b95;background:#102a3c;padding:7px 9px;box-shadow:3px 3px 0 #0a1b29;font-size:11px}.stat strong{display:block;font-size:20px;color:#fff5ce;font-variant-numeric:tabular-nums}
+.scene{position:relative;flex:1;min-height:170px;overflow:hidden;border:5px solid #0b2334;box-shadow:4px 4px 0 #091d2c;background:#80c5d5;touch-action:manipulation;cursor:pointer}
+canvas{display:block;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges}
+.scene-label{position:absolute;top:8px;left:8px;background:#122c3ac9;padding:5px 8px;font-size:11px;pointer-events:none}
+.message{min-height:63px;background:#f7f0d7;color:#253e47;border:4px solid #0b2334;padding:10px 12px;font-weight:800;font-size:14px;display:flex;align-items:center;box-shadow:3px 3px 0 #0b2334}
+#action{width:100%;min-height:58px;border:3px solid #513c1d;border-bottom-width:7px;background:#f3cb63;color:#273b44;font-size:18px;font-weight:900;box-shadow:3px 3px 0 #0b2334;touch-action:manipulation;border-radius:3px}
+#action:active:not(:disabled){transform:translateY(3px);border-bottom-width:4px}#action:disabled{opacity:.7}
+.footer{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px}#reset{background:#9ebdc5;border:2px solid #163345;padding:8px;font-size:11px;font-weight:700;color:#183443;border-radius:2px}
+.note{text-align:center;font-size:10px;color:#9dbbc7}
+@media(max-height:650px){main{gap:6px}h1{font-size:14px}.message{min-height:48px;padding:7px}#action{min-height:46px}.stat strong{font-size:17px}}
+</style></head>
+<body><main>
+<h1>✦ 金色の魚 釣り耐久 ✦</h1>
+<div class="stats"><div class="stat">釣り上げた数<strong id="count">0 匹</strong></div><div class="stat">色違いの確率<strong>1 / 4096</strong></div></div>
+<div class="scene" id="scene" role="img" aria-label="ドット絵の釣り場。釣り糸と魚の様子が変わります"><canvas id="art" width="480" height="640"></canvas><span class="scene-label" id="sceneLabel">のんびり釣り日和</span></div>
+<div class="message" id="message" aria-live="polite">水面が静かだ……。釣り糸を垂らそう！</div>
+<button id="action" type="button">釣り糸を垂らす</button>
+<div class="footer"><span id="history">金色の釣果：0 匹</span><button id="reset" type="button">記録リセット</button></div>
+<div class="note">スマホ縦画面対応 ・ 記録はこのブラウザに保存</div>
+</main>
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id);
+const KEY='gold-fishing-v1'; // 前バージョンの保存記録を引き継ぐ
+let saved={};try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){}
+let count=Number.isSafeInteger(saved.count)&&saved.count>=0?saved.count:0;
+let gold=Number.isSafeInteger(saved.gold)&&saved.gold>=0?saved.gold:0;
+let state='ready',shiny=false,timer=null,started=performance.now();
+const canvas=$('art'),ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=false;
+const W=240,H=320;\nctx.setTransform(2,0,0,2,0,0);
+function rect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))}
+function line(x,y,x2,y2,c,w=1){ctx.strokeStyle=c;ctx.lineWidth=w;ctx.beginPath();ctx.moveTo(Math.round(x)+.5,Math.round(y)+.5);ctx.lineTo(Math.round(x2)+.5,Math.round(y2)+.5);ctx.stroke()}
+function pixels(pattern,x,y,s,palette){pattern.forEach((r,j)=>[...r].forEach((ch,i)=>{if(palette[ch])rect(x+i*s,y+j*s,s,s,palette[ch])}))}
+const fishPattern=[
+'........KKKK........','......KKBBBBKK......','....KKBBBBBBBBKK....','...KBBBBBBBBBBBBK...','..KBBBBBBBBBBBBBBK..','KKBBBBBBBBBBBBBBBBKK','KBBBBBBBBBBBBBBBBBBK','KBBBBBBBBBBBBBBBBBBK','KKBBBBBBBBBBBBBBBBKK','..KBBBBBBBBBBBBBBK..','...KBBBBBBBBBBBBK...','....KKBBBBBBBBKK....','......KKBBBBKK......','........KKKK........'];
+function fish(x,y,goldFish,scale=3){
+/* 体・尾びれ・背びれ・目・口を分けて描く、横向きの魚 */
+const body=goldFish?'#efb62c':'#e47a48', light=goldFish?'#ffe078':'#ffa76a';
+const shade=goldFish?'#a96c18':'#9c4338', fin=goldFish?'#e29b20':'#d65b40';
+ctx.save();ctx.translate(x,y);ctx.scale(scale/2,scale/2);
+rect(-28,-11,42,22,shade);rect(-25,-12,36,23,body);
+rect(-19,-9,24,14,light);rect(-15,4,25,4,'#f9e6b6');
+/* 尾びれ */
+rect(12,-7,8,14,fin);rect(19,-15,5,30,shade);
+rect(23,-20,9,13,fin);rect(23,7,9,13,fin);
+rect(27,-16,7,8,light);rect(27,8,7,8,light);
+/* 背びれ・腹びれ */
+rect(-8,-19,16,8,shade);rect(-4,-23,9,7,fin);
+rect(-4,10,15,7,shade);rect(0,16,7,6,fin);
+/* 顔・目・口 */
+rect(-23,-5,5,5,'#fff');rect(-22,-4,3,3,'#182a34');
+rect(-29,3,6,4,shade);rect(-31,5,4,3,light);
+ctx.restore();
+}
+
+function draw(t){
+let tick=Math.floor(t/240),wave=t/450;
+rect(0,0,W,H,'#86cbd8');
+rect(0,0,W,95,'#91d5df');
+rect(187,24,25,25,'#fff0a2');rect(182,29,35,15,'#fff0a2');
+for(let i=0;i<7;i++){let x=(i*49+12)%W;rect(x,47+(i%3)*11,24,5,'#c6e9df');rect(x+5,42+(i%3)*11,15,5,'#c6e9df')}
+for(let x=0;x<W;x+=8){let hill=112+Math.floor(11*Math.sin(x/22));rect(x,hill,8,155-hill,'#4b8d73');rect(x,145,8,10,'#366e62')}
+rect(0,153,W,H-153,'#348da6');rect(0,159,W,8,'#4fa9b5');
+for(let j=0;j<10;j++)for(let i=0;i<6;i++){let x=(i*48+j*17+((tick+j)%8)*2)%W,y=173+j*15;rect(x,y,17,2,j%2?'#5db2bf':'#257991')}
+rect(0,145,41,175,'#3d745a');rect(0,154,28,166,'#5b9068');
+for(let i=0;i<7;i++){rect(4+i*4,143-i%3*7,3,20,'#81aa68')}
+rect(0,292,52,28,'#a2a06c');rect(0,304,68,16,'#c4b17b');
+/* 参考画像に合わせた白猫マスコットの細かなピクセル表現 */
+const white='#f9f7f1',shadow='#c6c8d1',outline='#5a5668',ear='#f5a5b9';
+/* 耳 */
+rect(21,89,14,22,outline);rect(23,91,10,18,white);rect(25,94,7,11,ear);
+rect(45,89,14,22,outline);rect(47,91,10,18,white);rect(49,94,7,11,ear);
+/* 丸い頭 */
+rect(21,106,38,35,outline);rect(18,111,44,25,white);
+rect(24,102,32,37,white);rect(20,122,40,12,white);
+rect(22,134,36,6,shadow);
+/* 水色のくるんとした額の模様 */
+rect(39,107,3,6,'#55cbd0');rect(37,112,5,3,'#55cbd0');
+rect(36,115,8,3,'#55cbd0');rect(40,113,4,2,'#a5edf0');
+/* 目・ほっぺ・ひげ・舌 */
+rect(29,119,3,4,'#262b36');rect(48,119,3,4,'#262b36');
+rect(23,126,7,4,'#f6c2ca');rect(51,126,7,4,'#f6c2ca');
+rect(35,127,5,4,shadow);rect(41,127,5,4,shadow);
+rect(38,129,5,6,'#ec9aa8');
+/* 白い胴体 */
+rect(24,144,34,29,outline);rect(26,141,30,30,white);
+rect(23,155,36,15,white);rect(27,168,28,7,shadow);
+/* 赤白のしめ縄 */
+for(let i=0;i<8;i++)rect(22+i*5,140+(i%2),5,5,i%2?'#fff9ee':'#d93e4b');
+/* 丸い手足 */
+rect(17,148,11,16,shadow);rect(19,148,9,14,white);
+rect(54,148,10,15,shadow);rect(54,149,8,13,white);
+rect(25,170,13,12,shadow);rect(26,169,11,11,white);
+rect(45,170,13,12,shadow);rect(46,169,11,11,white);
+line(53,129,77,61,'#5d3e32',3);line(77,61,99,49,'#8b613d',2);
+if(state==='waiting'||state==='bite'){
+line(99,49,137,211,'#f6f1db');
+rect(131,206+(tick%2),12,6,'#f5f4e6');rect(133,200+(tick%2),8,7,'#d94d52');
+for(let k=0;k<3;k++){let v=(tick+k*5)%18;rect(137-v,216+k*3,Math.max(2,v*2),2,'#92d8d8')}
+}
+if(state==='bite'){rect(141,93,29,38,'#f9e4a4');rect(150,99,10,20,'#b95343');rect(150,123,10,5,'#b95343');rect(145,131,22,4,'#253b49')}
+if(state==='result'){
+rect(58,160,155,109,'#142e42');rect(63,165,145,99,'#f3edcf');rect(68,170,135,89,shiny?'#fff0ae':'#c9e8e1');
+fish(109,201,shiny,2);
+if(shiny){for(let i=0;i<7;i++){let x=77+i*19,y=181+(i%3)*20;rect(x,y,5,5,'#fff');rect(x+2,y-3,2,11,'#fff')}}
+rect(77,246,118,5,shiny?'#e6ad31':'#68a9aa');
+}
+requestAnimationFrame(draw)
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({count,gold}))}catch(e){}}
+function render(){
+$('count').textContent=count+' 匹';$('history').textContent='金色の釣果：'+gold+' 匹';
+$('action').disabled=state==='waiting';
+$('action').textContent=({ready:'釣り糸を垂らす',waiting:'アタリを待っています…',bite:'釣り上げる！',result:'もう一度釣る'})[state];
+$('sceneLabel').textContent=({ready:'のんびり釣り日和',waiting:'アタリを待とう…',bite:'！ いまだ！',result:shiny?'✨ 金色の魚！':'釣り上げ成功！'})[state];
+}
+function action(){
+if(state==='ready'||state==='result'){
+state='waiting';$('message').textContent='釣り糸を垂らした……。アタリを待とう。';render();
+timer=setTimeout(()=>{timer=null;state='bite';$('message').textContent='おっ！ 魚が食いついた！';render()},1000+Math.random()*2400);
+}else if(state==='bite'){
+const a=new Uint32Array(1);crypto.getRandomValues(a);shiny=(a[0]>>>20)===0;
+count++;if(shiny)gold++;save();state='result';
+$('message').textContent=shiny?'✨ 金色の魚を釣り上げた！！ おめでとう！':'普通の魚を釣り上げた！ 次こそ金色かも？';render();
+}}
+$('action').addEventListener('click',action);
+$('scene').addEventListener('click',()=>{if(state!=='waiting')action()});
+$('reset').addEventListener('click',()=>{if(confirm('釣果の記録をすべてリセットしますか？')){clearTimeout(timer);timer=null;count=gold=0;state='ready';shiny=false;save();$('message').textContent='記録をリセットしました。';render()}});
+render();requestAnimationFrame(draw);
+})();
+</script></body></html>
